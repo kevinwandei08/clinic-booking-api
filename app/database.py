@@ -11,7 +11,17 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
     raise RuntimeError(
-        "DATABASE_URL is missing. Check your .env file."
+        "DATABASE_URL is missing. Check your environment variables or .env file."
+    )
+
+# Normalize Render PostgreSQL URLs to use the installed psycopg 3 driver.
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgres://", "postgresql+psycopg://", 1
+    )
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgresql://", "postgresql+psycopg://", 1
     )
 
 engine = create_engine(
@@ -35,6 +45,8 @@ def test_database_connection():
         return connection.execute(
             text("SELECT 1")
         ).scalar_one()
+
+
 def get_db():
     db = SessionLocal()
     try:
